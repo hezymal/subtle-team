@@ -1,5 +1,5 @@
-import { TelegramError } from "telegraf";
 import { InlineKeyboardMarkup } from "telegraf/types";
+
 import { StoryPoint, getStoryPointLabel } from "../models/poker";
 import {
     CallbackDataType,
@@ -11,18 +11,18 @@ import { CommandCallbackQueryContext, CommandHandlerContext } from "../types";
 
 const buildInlineKeyboardMarkup = (): InlineKeyboardMarkup => {
     const storyPoints = Object.values(StoryPoint);
-    const half = Math.ceil(storyPoints.length / 2);
+    const storyPointsAmountInRow = Math.ceil(storyPoints.length / 2);
 
     return {
         inline_keyboard: [
-            storyPoints.slice(0, half).map((storyPoint) => ({
+            storyPoints.slice(0, storyPointsAmountInRow).map((storyPoint) => ({
                 text: getStoryPointLabel(storyPoint),
                 callback_data: mapCallbackDataToString({
                     type: CallbackDataType.vote,
                     payload: storyPoint,
                 }),
             })),
-            storyPoints.slice(half).map((storyPoint) => ({
+            storyPoints.slice(storyPointsAmountInRow).map((storyPoint) => ({
                 text: getStoryPointLabel(storyPoint),
                 callback_data: mapCallbackDataToString({
                     type: CallbackDataType.vote,
@@ -71,28 +71,24 @@ export const handleVoteCallbackQuery = async (
     const chatId = context.chat.id;
     const messageId = context.msgId;
 
-    try {
-        const userVote: PokerUserVote = {
-            user: context.from,
-            storyPoint: data.payload,
-        };
-        await pokerService.setUserVote(chatId, messageId, userVote);
-
-        const messageText = await pokerService.getOpenedPokerText(
-            chatId,
-            messageId
-        );
-        await context.editMessageText(messageText, {
-            parse_mode: "HTML",
-            reply_markup: buildInlineKeyboardMarkup(),
-        });
-    } catch (error) {
-        if (error instanceof TelegramError) {
-            console.warn(error);
-        } else {
-            throw error;
-        }
+    if (!(await pokerService.exists(chatId, messageId))) {
+        return;
     }
+
+    const userVote: PokerUserVote = {
+        user: context.from,
+        storyPoint: data.payload,
+    };
+    await pokerService.setUserVote(chatId, messageId, userVote);
+
+    const messageText = await pokerService.getOpenedPokerText(
+        chatId,
+        messageId
+    );
+    await context.editMessageText(messageText, {
+        parse_mode: "HTML",
+        reply_markup: buildInlineKeyboardMarkup(),
+    });
 };
 
 export const handleRestartCallbackQuery = async (
@@ -105,26 +101,20 @@ export const handleRestartCallbackQuery = async (
     const chatId = context.chat.id;
     const messageId = context.msgId;
 
-    try {
-        await pokerService.restart(chatId, messageId);
-
-        const messageText = await pokerService.getOpenedPokerText(
-            chatId,
-            messageId
-        );
-        await context.editMessageText(messageText, {
-            parse_mode: "HTML",
-            reply_markup: buildInlineKeyboardMarkup(),
-        });
-    } catch (error) {
-        if (error instanceof TelegramError) {
-            console.warn(error);
-        } else {
-            throw error;
-        }
+    if (!(await pokerService.exists(chatId, messageId))) {
+        return;
     }
 
-    return;
+    await pokerService.restart(chatId, messageId);
+
+    const messageText = await pokerService.getOpenedPokerText(
+        chatId,
+        messageId
+    );
+    await context.editMessageText(messageText, {
+        parse_mode: "HTML",
+        reply_markup: buildInlineKeyboardMarkup(),
+    });
 };
 
 export const handleCloseCallbackQuery = async (
@@ -137,21 +127,17 @@ export const handleCloseCallbackQuery = async (
     const chatId = context.chat.id;
     const messageId = context.msgId;
 
-    try {
-        await pokerService.close(chatId, messageId);
-
-        const messageText = await pokerService.getClosedPokerText(
-            chatId,
-            messageId
-        );
-        await context.editMessageText(messageText, {
-            parse_mode: "HTML",
-        });
-    } catch (error) {
-        if (error instanceof TelegramError) {
-            console.warn(error);
-        } else {
-            throw error;
-        }
+    if (!(await pokerService.exists(chatId, messageId))) {
+        return;
     }
+
+    const messageText = await pokerService.getClosedPokerText(
+        chatId,
+        messageId
+    );
+    await context.editMessageText(messageText, {
+        parse_mode: "HTML",
+    });
+
+    await pokerService.close(chatId, messageId);
 };

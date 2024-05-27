@@ -24,9 +24,11 @@ class PokerService {
     constructor() {
         this.open = this.open.bind(this);
         this.restart = this.restart.bind(this);
+        this.exists = this.exists.bind(this);
         this.close = this.close.bind(this);
         this.setUserVote = this.setUserVote.bind(this);
         this.loadFromStorage = this.loadFromStorage.bind(this);
+        this.existsInStorage = this.existsInStorage.bind(this);
         this.saveToStorage = this.saveToStorage.bind(this);
         this.removeFromStorage = this.removeFromStorage.bind(this);
         this.getPokerTitle = this.getPokerTitle.bind(this);
@@ -50,6 +52,10 @@ class PokerService {
         const poker = await this.loadFromStorage(chatId, messageId);
         poker.usersVotes = [];
         await this.saveToStorage(chatId, messageId, poker);
+    }
+
+    public exists(chatId: number, messageId: number): Promise<boolean> {
+        return this.existsInStorage(chatId, messageId);
     }
 
     public close(chatId: number, messageId: number): Promise<void> {
@@ -132,6 +138,15 @@ class PokerService {
         }
 
         return poker;
+    }
+
+    private async existsInStorage(
+        chatId: number,
+        messageId: number
+    ): Promise<boolean> {
+        const key = buildStorageKey(chatId, messageId);
+        const poker = await redisService.get<Poker>(key);
+        return poker !== null;
     }
 
     private saveToStorage(
