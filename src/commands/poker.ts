@@ -1,4 +1,4 @@
-import { InlineKeyboardMarkup } from "telegraf/types";
+import { InlineKeyboardMarkup, User } from "telegraf/types";
 
 import {
     StoryPoint,
@@ -17,6 +17,15 @@ const getPokerTitle = (pokerName: string): string => {
     return `<strong>Покер планирование: ${pokerName}</strong>`;
 };
 
+const getUserName = (user: User): string => {
+    const firstName = user.first_name;
+    const lastName = user.last_name ?? "";
+    const username = user.username ?? "";
+
+    const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+    return username ? `${username} (${fullName})` : fullName;
+};
+
 const getNewPokerText = (pokerName: string): string => {
     const title = getPokerTitle(pokerName);
     return title;
@@ -25,7 +34,7 @@ const getNewPokerText = (pokerName: string): string => {
 const getVotedPokerText = (poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
     const votes = poker.usersVotes
-        .map((v) => `${v.user.username}: 🃏`)
+        .map((userVote) => `${getUserName(userVote.user)}: 🃏`)
         .join("\n");
     const counter = `Всего голосов: ${poker.usersVotes.length}`;
     return `${title}\n\n${votes}\n\n${counter}`;
@@ -33,18 +42,18 @@ const getVotedPokerText = (poker: Poker): string => {
 
 const getPokerResultText = (poker: Poker): string => {
     const votes: string[] = [];
-    let pointsSum: number = 0;
+    let votesSum = 0;
+
     for (const userVote of poker.usersVotes) {
-        const username = userVote.user.username;
-        const point = getStoryPointLabel(userVote.storyPoint);
-        votes.push(`${username}: ${point}`);
-        pointsSum += getStoryPointValue(userVote.storyPoint);
+        const pointLabel = getStoryPointLabel(userVote.storyPoint);
+        votes.push(`${getUserName(userVote.user)}: ${pointLabel}`);
+        votesSum += getStoryPointValue(userVote.storyPoint);
     }
 
     const title = getPokerTitle(poker.pokerName);
-    const counter = `Всего голосов: ${poker.usersVotes.length}`;
-    const pointsMedium = pointsSum / poker.usersVotes.length;
-    const medium = `В среднем: <strong>${pointsMedium.toFixed(2)}</strong>`;
+    const counter = `Всего голосов: ${votes.length}`;
+    const votesAverage = votesSum / votes.length;
+    const medium = `В среднем: <strong>${votesAverage.toFixed(2)}</strong>`;
 
     return `${title}\n\n${votes.join("\n")}\n\n${counter}\n${medium}`;
 };
