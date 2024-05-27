@@ -1,13 +1,53 @@
 import { InlineKeyboardMarkup } from "telegraf/types";
 
-import { StoryPoint, getStoryPointLabel } from "../models/poker";
+import {
+    StoryPoint,
+    getStoryPointLabel,
+    getStoryPointValue,
+} from "../models/poker";
 import {
     CallbackDataType,
     VoteCallbackData,
     mapCallbackDataToString,
 } from "../models/callbackData";
-import { PokerUserVote, pokerService } from "../services/pokerService";
+import { Poker, PokerUserVote, pokerService } from "../services/pokerService";
 import { CommandCallbackQueryContext, CommandHandlerContext } from "../types";
+
+const getPokerTitle = (pokerName: string): string => {
+    return `<strong>Покер планирование: ${pokerName}</strong>`;
+};
+
+const getNewPokerText = (pokerName: string): string => {
+    const title = getPokerTitle(pokerName);
+    return title;
+};
+
+const getVotedPokerText = (poker: Poker): string => {
+    const title = getPokerTitle(poker.pokerName);
+    const votes = poker.usersVotes
+        .map((v) => `${v.user.username}: 🃏`)
+        .join("\n");
+    const counter = `Всего голосов: ${poker.usersVotes.length}`;
+    return `${title}\n\n${votes}\n\n${counter}`;
+};
+
+const getPokerResultText = (poker: Poker): string => {
+    const votes: string[] = [];
+    let pointsSum: number = 0;
+    for (const userVote of poker.usersVotes) {
+        const username = userVote.user.username;
+        const point = getStoryPointLabel(userVote.storyPoint);
+        votes.push(`${username}: ${point}`);
+        pointsSum += getStoryPointValue(userVote.storyPoint);
+    }
+
+    const title = getPokerTitle(poker.pokerName);
+    const counter = `Всего голосов: ${poker.usersVotes.length}`;
+    const pointsMedium = pointsSum / poker.usersVotes.length;
+    const medium = `В среднем: <strong>${pointsMedium.toFixed(2)}</strong>`;
+
+    return `${title}\n\n${votes.join("\n")}\n\n${counter}\n${medium}`;
+};
 
 const buildInlineKeyboardMarkup = (): InlineKeyboardMarkup => {
     const storyPoints = Object.values(StoryPoint);
@@ -50,14 +90,14 @@ const buildInlineKeyboardMarkup = (): InlineKeyboardMarkup => {
 export const handlePokerCommand = async (context: CommandHandlerContext) => {
     const chatId = context.message.chat.id;
     const pokerName = context.args[0] || "";
-    const messageText = pokerService.getPokerTitle(pokerName);
+    const messageText = getNewPokerText(pokerName);
     const message = await context.telegram.sendMessage(chatId, messageText, {
         parse_mode: "HTML",
         reply_markup: buildInlineKeyboardMarkup(),
     });
 
     const messageId = message.message_id;
-    await pokerService.open(chatId, messageId, pokerName);
+    await pokerService.create(chatId, messageId, pokerName);
 };
 
 export const handleVoteCallbackQuery = async (
@@ -81,10 +121,8 @@ export const handleVoteCallbackQuery = async (
     };
     await pokerService.setUserVote(chatId, messageId, userVote);
 
-    const messageText = await pokerService.getOpenedPokerText(
-        chatId,
-        messageId
-    );
+    const poker = await pokerService.get(chatId, messageId);
+    const messageText = getVotedPokerText(poker);
     await context.editMessageText(messageText, {
         parse_mode: "HTML",
         reply_markup: buildInlineKeyboardMarkup(),
@@ -107,10 +145,8 @@ export const handleRestartCallbackQuery = async (
 
     await pokerService.restart(chatId, messageId);
 
-    const messageText = await pokerService.getOpenedPokerText(
-        chatId,
-        messageId
-    );
+    const poker = await pokerService.get(chatId, messageId);
+    const messageText = getNewPokerText(poker.pokerName);
     await context.editMessageText(messageText, {
         parse_mode: "HTML",
         reply_markup: buildInlineKeyboardMarkup(),
@@ -131,10 +167,8 @@ export const handleCloseCallbackQuery = async (
         return;
     }
 
-    const messageText = await pokerService.getClosedPokerText(
-        chatId,
-        messageId
-    );
+    const poker = await pokerService.get(chatId, messageId);
+    const messageText = getPokerResultText(poker);
     await context.editMessageText(messageText, {
         parse_mode: "HTML",
     });
