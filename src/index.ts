@@ -1,12 +1,19 @@
 import "dotenv/config";
 
 import { Telegraf } from "telegraf";
-import { pingCommandHandler } from "./commands/ping";
+import { CallbackQuery } from "telegraf/types";
+import { handlePingCommand } from "./commands/ping";
 import {
-    pokerCommandCallbackQuery,
-    pokerCommandHandler,
+    handlePokerCommand,
+    handleVoteCallbackQuery,
+    handleRestartCallbackQuery,
+    handleCloseCallbackQuery,
 } from "./commands/poker";
 import { logMiddleware } from "./middlewares/logMiddleware";
+import {
+    CallbackDataType,
+    mapStringToCallbackData,
+} from "./models/callbackData";
 
 if (!process.env.BOT_TOKEN) {
     throw new Error("Undefined enviroment variable: BOT_TOKEN");
@@ -16,12 +23,28 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.use(logMiddleware);
 
-bot.command("ping", pingCommandHandler);
-bot.command("poker", pokerCommandHandler);
+bot.command("ping", handlePingCommand);
+bot.command("poker", handlePokerCommand);
 
 bot.on("callback_query", async (context) => {
     await context.telegram.answerCbQuery(context.callbackQuery.id);
-    await pokerCommandCallbackQuery(context);
+
+    const query = context.callbackQuery as CallbackQuery.DataQuery;
+    const callbackData = mapStringToCallbackData(query.data);
+    switch (callbackData.type) {
+        case CallbackDataType.vote:
+            await handleVoteCallbackQuery(context, callbackData);
+            break;
+
+        case CallbackDataType.restart:
+            await handleRestartCallbackQuery(context);
+            break;
+
+        case CallbackDataType.close:
+            await handleCloseCallbackQuery(context);
+            break;
+    }
+
     await context.answerCbQuery();
 });
 
