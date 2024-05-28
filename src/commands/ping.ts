@@ -8,11 +8,12 @@ const execGit = (...commands: string[]): string => {
 };
 
 export const handlePingCommand = (context: CommandHandlerContext) => {
-    const tag = execGit("tag");
+    const tags = execGit("tag");
+    const tagList = tags.split("\n");
     const branch = execGit("branch");
-    const messageText = `<strong>pong</strong>
-        tag: ${tag}
-        branch: ${branch}
+    const messageText = `<strong>понг</strong>
+        тег: ${tagList.length > 0 ? tagList[0] : "-"}
+        ветка: ${branch}
     `;
 
     return context.telegram.sendMessage(context.message.chat.id, messageText, {

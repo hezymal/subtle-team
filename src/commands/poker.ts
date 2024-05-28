@@ -50,7 +50,7 @@ const getPokerResultText = (poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
 
     if (poker.usersVotes.length === 0) {
-        return `${title}\n\nЗавершен!`;
+        return `${title}\n\nОтменен!`;
     }
 
     let votes = "";
@@ -67,7 +67,7 @@ const getPokerResultText = (poker: Poker): string => {
     const mediumPoints = sum / poker.usersVotes.length;
     const medium = `В среднем: <strong>${mediumPoints.toFixed(2)}</strong>`;
 
-    return `${title}\n\n${votes}\n\n${total}\n${medium}`;
+    return `${title}\n\n${votes}\n${total}\n${medium}`;
 };
 
 const buildInlineKeyboardMarkup = (): InlineKeyboardMarkup => {
