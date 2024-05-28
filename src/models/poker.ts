@@ -65,7 +65,7 @@ export const getStoryPointValue = (storyPoint: StoryPoint): number => {
             return 13;
 
         case StoryPoint.ST40:
-            return 13;
+            return 40;
 
         case StoryPoint.unknown:
             return 0;
