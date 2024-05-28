@@ -33,29 +33,41 @@ const getNewPokerText = (pokerName: string): string => {
 
 const getVotedPokerText = (poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
+
+    if (poker.usersVotes.length === 0) {
+        return title;
+    }
+
     const votes = poker.usersVotes
         .map((userVote) => `${getUserName(userVote.user)}: 🃏`)
         .join("\n");
-    const counter = `Всего голосов: ${poker.usersVotes.length}`;
-    return `${title}\n\n${votes}\n\n${counter}`;
+    const total = `Всего голосов: ${poker.usersVotes.length}`;
+
+    return `${title}\n\n${votes}\n\n${total}`;
 };
 
 const getPokerResultText = (poker: Poker): string => {
-    const votes: string[] = [];
-    let votesSum = 0;
+    const title = getPokerTitle(poker.pokerName);
 
-    for (const userVote of poker.usersVotes) {
-        const pointLabel = getStoryPointLabel(userVote.storyPoint);
-        votes.push(`${getUserName(userVote.user)}: ${pointLabel}`);
-        votesSum += getStoryPointValue(userVote.storyPoint);
+    if (poker.usersVotes.length === 0) {
+        return `${title}\n\nЗавершен!`;
     }
 
-    const title = getPokerTitle(poker.pokerName);
-    const counter = `Всего голосов: ${votes.length}`;
-    const votesAverage = votesSum / votes.length;
-    const medium = `В среднем: <strong>${votesAverage.toFixed(2)}</strong>`;
+    let votes = "";
+    let sum = 0;
 
-    return `${title}\n\n${votes.join("\n")}\n\n${counter}\n${medium}`;
+    for (const userVote of poker.usersVotes) {
+        const userName = getUserName(userVote.user);
+        const pointLabel = getStoryPointLabel(userVote.storyPoint);
+        votes += `${userName}: ${pointLabel}\n`;
+        sum += getStoryPointValue(userVote.storyPoint);
+    }
+
+    const total = `Всего голосов: ${poker.usersVotes.length}`;
+    const mediumPoints = sum / poker.usersVotes.length;
+    const medium = `В среднем: <strong>${mediumPoints.toFixed(2)}</strong>`;
+
+    return `${title}\n\n${votes}\n\n${total}\n${medium}`;
 };
 
 const buildInlineKeyboardMarkup = (): InlineKeyboardMarkup => {
