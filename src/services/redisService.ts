@@ -1,6 +1,6 @@
 import { RedisClientType, createClient } from "redis";
 
-const REDIS_URL = "redis";
+const REDIS_URL = "redis://redis";
 
 class RedisService {
     private client: RedisClientType;
