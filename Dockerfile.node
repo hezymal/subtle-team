@@ -15,4 +15,4 @@ RUN yarn install
 # Run the application as a non-root user.
 USER node
 
-CMD npx ts-node src/index.ts
+CMD yarn ts-node src/index.ts
