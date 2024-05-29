@@ -1,10 +1,16 @@
 services:
     bot:
+        # image: node:20.11.1-alpine
         build:
             context: .
             dockerfile: ./Dockerfile.node
         environment:
             NODE_ENV: production
+        # working_dir: /usr/src/app
+        volumes:
+            - type: bind
+                source: .
+                target: /usr/src/app
         restart: always
         depends_on:
             - redis
