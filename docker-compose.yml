@@ -2,7 +2,7 @@ services:
     bot:
         build:
             context: .
-            dockerfile: ./Docker.node
+            dockerfile: ./Dockerfile.node
         environment:
             NODE_ENV: production
         restart: always
