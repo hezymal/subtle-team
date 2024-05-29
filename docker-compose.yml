@@ -3,10 +3,6 @@ services:
         build:
             context: .
             dockerfile: ./Dockerfile.node
-        volumes:
-            - type: bind
-              source: .
-              target: /usr/src/app
         restart: always
         depends_on:
             - redis
