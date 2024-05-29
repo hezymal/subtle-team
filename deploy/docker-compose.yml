@@ -1,0 +1,14 @@
+services:
+    bot:
+        build:
+            context: .
+            dockerfile: Docker.node
+        environment:
+            NODE_ENV: production
+        restart: always
+        depends_on:
+            - redis
+
+    redis:
+        image: redis
+        restart: always

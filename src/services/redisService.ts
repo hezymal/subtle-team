@@ -1,5 +1,7 @@
 import { RedisClientType, createClient } from "redis";
 
+const REDIS_URL = "redis";
+
 class RedisService {
     private client: RedisClientType;
 
@@ -10,7 +12,7 @@ class RedisService {
         this.set = this.set.bind(this);
         this.delete = this.delete.bind(this);
 
-        this.client = createClient();
+        this.client = createClient({ url: REDIS_URL });
     }
 
     async dispose() {
