@@ -2,13 +2,13 @@ import { StoryPoint } from "./poker";
 
 export enum CallbackDataType {
     vote = "vote",
-    restart = "restart",
+    repeat = "repeat",
     close = "close",
 }
 
 enum ShortCallbackDataType {
     vote = "v",
-    restart = "r",
+    repeat = "r",
     close = "c",
 }
 
@@ -18,7 +18,7 @@ export type VoteCallbackData = {
 };
 
 export type RestartCallbackData = {
-    type: CallbackDataType.restart;
+    type: CallbackDataType.repeat;
 };
 
 export type CloseCallbackData = {
@@ -36,7 +36,7 @@ type ShortVoteCallbackData = {
 };
 
 type ShortRestartCallbackData = {
-    t: ShortCallbackDataType.restart;
+    t: ShortCallbackDataType.repeat;
 };
 
 type ShortCloseCallbackData = {
@@ -48,45 +48,47 @@ type ShortCallbackData =
     | ShortRestartCallbackData
     | ShortCloseCallbackData;
 
-const mapCallbackDataToShort = (data: CallbackData): ShortCallbackData => {
-    switch (data.type) {
+const mapCallbackDataToShort = (
+    callbackData: CallbackData
+): ShortCallbackData => {
+    switch (callbackData.type) {
         case CallbackDataType.vote:
-            return {
-                t: ShortCallbackDataType.vote,
-                p: data.payload,
-            };
+            return { t: ShortCallbackDataType.vote, p: callbackData.payload };
 
-        case CallbackDataType.restart:
-            return {
-                t: ShortCallbackDataType.restart,
-            };
+        case CallbackDataType.repeat:
+            return { t: ShortCallbackDataType.repeat };
 
         case CallbackDataType.close:
-            return {
-                t: ShortCallbackDataType.close,
-            };
+            return { t: ShortCallbackDataType.close };
     }
 };
 
-const mapShortToCallbackData = (data: ShortCallbackData): CallbackData => {
-    switch (data.t) {
+const mapShortToCallbackData = (
+    shortCallbackData: ShortCallbackData
+): CallbackData => {
+    switch (shortCallbackData.t) {
         case ShortCallbackDataType.vote:
-            return { type: CallbackDataType.vote, payload: data.p };
+            return {
+                type: CallbackDataType.vote,
+                payload: shortCallbackData.p,
+            };
 
-        case ShortCallbackDataType.restart:
-            return { type: CallbackDataType.restart };
+        case ShortCallbackDataType.repeat:
+            return { type: CallbackDataType.repeat };
 
         case ShortCallbackDataType.close:
             return { type: CallbackDataType.close };
     }
 };
 
-export const mapCallbackDataToString = (data: CallbackData): string => {
-    const shortCallbackData = mapCallbackDataToShort(data);
+export const packCallbackData = (callbackData: CallbackData): string => {
+    const shortCallbackData = mapCallbackDataToShort(callbackData);
     return JSON.stringify(shortCallbackData);
 };
 
-export const mapStringToCallbackData = (str: string): CallbackData => {
-    const data = JSON.parse(str);
-    return mapShortToCallbackData(data);
+export const unpackCallbackData = (
+    packedCallbackData: string
+): CallbackData => {
+    const callbackData = JSON.parse(packedCallbackData);
+    return mapShortToCallbackData(callbackData);
 };

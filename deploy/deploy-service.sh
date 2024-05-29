@@ -9,3 +9,5 @@ sudo systemctl status subtle-team.service
 sudo systemctl daemon-reload
 
 sudo systemctl restart subtle-team.service
+
+tail -f /var/log/syslog -n 100

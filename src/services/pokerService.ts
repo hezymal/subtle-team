@@ -1,16 +1,6 @@
-import { User } from "telegraf/types";
 import { redisService } from "./redisService";
-import { StoryPoint } from "../models/poker";
-
-export interface PokerUserVote {
-    user: User;
-    storyPoint: StoryPoint;
-}
-
-export interface Poker {
-    pokerName: string;
-    usersVotes: PokerUserVote[];
-}
+import { Poker, PokerState, StoryPoint } from "../models/poker";
+import { User } from "telegraf/types";
 
 const buildStorageKey = (chatId: number, messageId: number): string => {
     return `poker:${chatId}:${messageId}`;
@@ -19,11 +9,10 @@ const buildStorageKey = (chatId: number, messageId: number): string => {
 class PokerService {
     constructor() {
         this.create = this.create.bind(this);
-        this.restart = this.restart.bind(this);
         this.exists = this.exists.bind(this);
         this.close = this.close.bind(this);
         this.get = this.get.bind(this);
-        this.setUserVote = this.setUserVote.bind(this);
+        this.vote = this.vote.bind(this);
         this.getFromStorage = this.getFromStorage.bind(this);
         this.existsInStorage = this.existsInStorage.bind(this);
         this.setInStorage = this.setInStorage.bind(this);
@@ -38,6 +27,8 @@ class PokerService {
         const poker: Poker = {
             pokerName,
             usersVotes: [],
+            state: PokerState.open,
+            created: new Date().toISOString(),
         };
 
         return this.setInStorage(chatId, messageId, poker);
@@ -51,37 +42,34 @@ class PokerService {
         return this.existsInStorage(chatId, messageId);
     }
 
-    public async setUserVote(
+    public async vote(
         chatId: number,
         messageId: number,
-        userVote: PokerUserVote
+        user: User,
+        storyPoint: StoryPoint
     ): Promise<boolean> {
         const poker = await this.getFromStorage(chatId, messageId);
         const existsUserVote = poker.usersVotes.find(
-            (v) => v.user.id === userVote.user.id
+            (v) => v.user.id === user.id
         );
         if (existsUserVote) {
-            if (existsUserVote.storyPoint === userVote.storyPoint) {
+            if (existsUserVote.storyPoint === storyPoint) {
                 return false;
             }
 
-            existsUserVote.storyPoint = userVote.storyPoint;
+            existsUserVote.storyPoint = storyPoint;
         } else {
-            poker.usersVotes.push(userVote);
+            poker.usersVotes.push({ user, storyPoint });
         }
 
         await this.setInStorage(chatId, messageId, poker);
         return true;
     }
 
-    public async restart(chatId: number, messageId: number): Promise<void> {
+    public async close(chatId: number, messageId: number): Promise<void> {
         const poker = await this.getFromStorage(chatId, messageId);
-        poker.usersVotes = [];
+        poker.state = PokerState.closed;
         await this.setInStorage(chatId, messageId, poker);
-    }
-
-    public close(chatId: number, messageId: number): Promise<void> {
-        return this.removeFromStorage(chatId, messageId);
     }
 
     private async getFromStorage(

@@ -1,6 +1,7 @@
 import { InlineKeyboardMarkup, User } from "telegraf/types";
 
 import {
+    Poker,
     StoryPoint,
     getStoryPointLabel,
     getStoryPointValue,
@@ -8,14 +9,10 @@ import {
 import {
     CallbackDataType,
     VoteCallbackData,
-    mapCallbackDataToString,
+    packCallbackData,
 } from "../models/callbackData";
-import { Poker, PokerUserVote, pokerService } from "../services/pokerService";
+import { pokerService } from "../services/pokerService";
 import { CommandCallbackQueryContext, CommandHandlerContext } from "../types";
-
-const getPokerTitle = (pokerName: string): string => {
-    return `<strong>Покер планирование: ${pokerName}</strong>`;
-};
 
 const getUserName = (user: User): string => {
     const firstName = user.first_name;
@@ -23,83 +20,94 @@ const getUserName = (user: User): string => {
     const username = user.username ?? "";
 
     const fullName = lastName ? `${firstName} ${lastName}` : firstName;
-    return username ? `${username} (${fullName})` : fullName;
+    return username ? `${fullName} (${username})` : fullName;
 };
 
-const getNewPokerText = (pokerName: string): string => {
+const getPokerTitle = (pokerName: string): string => {
+    return `<strong>Покер: ${pokerName}</strong>`;
+};
+
+const getNewPokerMessage = (pokerName: string): string => {
     const title = getPokerTitle(pokerName);
     return title;
 };
 
-const getVotedPokerText = (poker: Poker): string => {
+const getVotedPokerMessage = (poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
 
     if (poker.usersVotes.length === 0) {
         return title;
     }
 
-    const votes = poker.usersVotes
-        .map((userVote) => `${getUserName(userVote.user)}: 🃏`)
-        .join("\n");
+    const votes = poker.usersVotes.map(
+        (userVote) => `🃏 - ${getUserName(userVote.user)}`
+    );
     const total = `Всего голосов: ${poker.usersVotes.length}`;
 
-    return `${title}\n\n${votes}\n\n${total}`;
+    return `${title}\n\n${votes.join("\n")}\n\n${total}`;
 };
 
-const getPokerResultText = (poker: Poker): string => {
+const getPokerResultMessage = (poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
 
     if (poker.usersVotes.length === 0) {
         return `${title}\n\nОтменен!`;
     }
 
-    let votes = "";
-    let sum = 0;
+    const votes: string[] = [];
+    let pointsSum = 0;
+    let pointsCount = 0;
 
-    for (const userVote of poker.usersVotes) {
+    const sortedUsersVotes = [...poker.usersVotes].sort((vote1, vote2) => {
+        const value1 = getStoryPointValue(vote1.storyPoint);
+        const value2 = getStoryPointValue(vote2.storyPoint);
+        return value1 - value2;
+    });
+
+    for (const userVote of sortedUsersVotes) {
         const userName = getUserName(userVote.user);
         const pointLabel = getStoryPointLabel(userVote.storyPoint);
-        votes += `${userName}: ${pointLabel}\n`;
-        sum += getStoryPointValue(userVote.storyPoint);
+        const pointValue = getStoryPointValue(userVote.storyPoint);
+        if (pointValue > 0) {
+            pointsCount++;
+        }
+
+        votes.push(`${pointLabel} - ${userName}`);
+        pointsSum += pointValue;
     }
 
-    const total = `Всего голосов: ${poker.usersVotes.length}`;
-    const mediumPoints = sum / poker.usersVotes.length;
-    const medium = `В среднем: <strong>${mediumPoints.toFixed(2)}</strong>`;
+    const poinstAverage = pointsCount > 0 ? pointsSum / pointsCount : 0;
 
-    return `${title}\n\n${votes}\n${total}\n${medium}`;
+    const total = `Всего голосов: ${poker.usersVotes.length}`;
+    const medium = `В среднем: <strong>${poinstAverage.toFixed(2)}</strong>`;
+
+    return `${title}\n\n${votes.join("\n")}\n\n${total}\n${medium}`;
 };
 
-const buildInlineKeyboardMarkup = (): InlineKeyboardMarkup => {
+const getOpenPokerKeyboardMarkup = (): InlineKeyboardMarkup => {
     const storyPoints = Object.values(StoryPoint);
-    const storyPointsAmountInRow = Math.ceil(storyPoints.length / 2);
+    const amountInRow = Math.ceil(storyPoints.length / 2);
 
     return {
         inline_keyboard: [
-            storyPoints.slice(0, storyPointsAmountInRow).map((storyPoint) => ({
+            storyPoints.slice(0, amountInRow).map((storyPoint) => ({
                 text: getStoryPointLabel(storyPoint),
-                callback_data: mapCallbackDataToString({
+                callback_data: packCallbackData({
                     type: CallbackDataType.vote,
                     payload: storyPoint,
                 }),
             })),
-            storyPoints.slice(storyPointsAmountInRow).map((storyPoint) => ({
+            storyPoints.slice(amountInRow).map((storyPoint) => ({
                 text: getStoryPointLabel(storyPoint),
-                callback_data: mapCallbackDataToString({
+                callback_data: packCallbackData({
                     type: CallbackDataType.vote,
                     payload: storyPoint,
                 }),
             })),
             [
                 {
-                    text: "Перезапустить",
-                    callback_data: mapCallbackDataToString({
-                        type: CallbackDataType.restart,
-                    }),
-                },
-                {
                     text: "Завершить",
-                    callback_data: mapCallbackDataToString({
+                    callback_data: packCallbackData({
                         type: CallbackDataType.close,
                     }),
                 },
@@ -108,13 +116,30 @@ const buildInlineKeyboardMarkup = (): InlineKeyboardMarkup => {
     };
 };
 
-export const handlePokerCommand = async (context: CommandHandlerContext) => {
+const getClosedPokerKeyboardMarkup = (): InlineKeyboardMarkup => {
+    return {
+        inline_keyboard: [
+            [
+                {
+                    text: "Повторить",
+                    callback_data: packCallbackData({
+                        type: CallbackDataType.repeat,
+                    }),
+                },
+            ],
+        ],
+    };
+};
+
+export const handlePokerCommand = async (
+    context: CommandHandlerContext
+): Promise<void> => {
     const chatId = context.message.chat.id;
     const pokerName = context.args[0] || "";
-    const messageText = getNewPokerText(pokerName);
+    const messageText = getNewPokerMessage(pokerName);
     const message = await context.telegram.sendMessage(chatId, messageText, {
         parse_mode: "HTML",
-        reply_markup: buildInlineKeyboardMarkup(),
+        reply_markup: getOpenPokerKeyboardMarkup(),
     });
 
     const messageId = message.message_id;
@@ -132,45 +157,26 @@ export const handleVoteCallbackQuery = async (
     const chatId = context.chat.id;
     const messageId = context.msgId;
 
-    if (!(await pokerService.exists(chatId, messageId))) {
+    const isPokerExists = await pokerService.exists(chatId, messageId);
+    if (!isPokerExists) {
         return;
     }
 
-    const userVote: PokerUserVote = {
-        user: context.from,
-        storyPoint: data.payload,
-    };
-    await pokerService.setUserVote(chatId, messageId, userVote);
+    const voteResult = await pokerService.vote(
+        chatId,
+        messageId,
+        context.from,
+        data.payload
+    );
+    if (!voteResult) {
+        return;
+    }
 
     const poker = await pokerService.get(chatId, messageId);
-    const messageText = getVotedPokerText(poker);
+    const messageText = getVotedPokerMessage(poker);
     await context.editMessageText(messageText, {
         parse_mode: "HTML",
-        reply_markup: buildInlineKeyboardMarkup(),
-    });
-};
-
-export const handleRestartCallbackQuery = async (
-    context: CommandCallbackQueryContext
-): Promise<void> => {
-    if (!context.chat || !context.msgId) {
-        return;
-    }
-
-    const chatId = context.chat.id;
-    const messageId = context.msgId;
-
-    if (!(await pokerService.exists(chatId, messageId))) {
-        return;
-    }
-
-    await pokerService.restart(chatId, messageId);
-
-    const poker = await pokerService.get(chatId, messageId);
-    const messageText = getNewPokerText(poker.pokerName);
-    await context.editMessageText(messageText, {
-        parse_mode: "HTML",
-        reply_markup: buildInlineKeyboardMarkup(),
+        reply_markup: getOpenPokerKeyboardMarkup(),
     });
 };
 
@@ -184,15 +190,47 @@ export const handleCloseCallbackQuery = async (
     const chatId = context.chat.id;
     const messageId = context.msgId;
 
-    if (!(await pokerService.exists(chatId, messageId))) {
+    const isPokerExists = await pokerService.exists(chatId, messageId);
+    if (!isPokerExists) {
         return;
     }
 
     const poker = await pokerService.get(chatId, messageId);
-    const messageText = getPokerResultText(poker);
+    const messageText = getPokerResultMessage(poker);
     await context.editMessageText(messageText, {
         parse_mode: "HTML",
+        reply_markup: getClosedPokerKeyboardMarkup(),
     });
 
     await pokerService.close(chatId, messageId);
+};
+
+export const handleRestartCallbackQuery = async (
+    context: CommandCallbackQueryContext
+): Promise<void> => {
+    if (!context.chat || !context.msgId) {
+        return;
+    }
+
+    const chatId = context.chat.id;
+    const messageId = context.msgId;
+
+    const isPokerExists = await pokerService.exists(chatId, messageId);
+    if (!isPokerExists) {
+        return;
+    }
+
+    const poker = await pokerService.get(chatId, messageId);
+    const newMessageText = getNewPokerMessage(poker.pokerName);
+    const newMessage = await context.telegram.sendMessage(
+        chatId,
+        newMessageText,
+        {
+            parse_mode: "HTML",
+            reply_markup: getOpenPokerKeyboardMarkup(),
+        }
+    );
+
+    const newMessageId = newMessage.message_id;
+    await pokerService.create(chatId, newMessageId, poker.pokerName);
 };

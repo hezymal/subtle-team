@@ -10,10 +10,8 @@ import {
     handleCloseCallbackQuery,
 } from "./commands/poker";
 import { logMiddleware } from "./middlewares/logMiddleware";
-import {
-    CallbackDataType,
-    mapStringToCallbackData,
-} from "./models/callbackData";
+import { CallbackDataType, unpackCallbackData } from "./models/callbackData";
+import { redisService } from "./services/redisService";
 
 if (!process.env.BOT_TOKEN) {
     throw new Error("Undefined enviroment variable: BOT_TOKEN");
@@ -30,13 +28,13 @@ bot.on("callback_query", async (context) => {
     await context.telegram.answerCbQuery(context.callbackQuery.id);
 
     const query = context.callbackQuery as CallbackQuery.DataQuery;
-    const callbackData = mapStringToCallbackData(query.data);
+    const callbackData = unpackCallbackData(query.data);
     switch (callbackData.type) {
         case CallbackDataType.vote:
             await handleVoteCallbackQuery(context, callbackData);
             break;
 
-        case CallbackDataType.restart:
+        case CallbackDataType.repeat:
             await handleRestartCallbackQuery(context);
             break;
 
@@ -52,5 +50,12 @@ bot.launch(() => {
     console.log("bot launched:");
 });
 
-process.once("SIGINT", () => bot.stop("SIGINT"));
-process.once("SIGTERM", () => bot.stop("SIGTERM"));
+process.once("SIGINT", async () => {
+    bot.stop("SIGINT");
+    await redisService.dispose();
+});
+
+process.once("SIGTERM", async () => {
+    bot.stop("SIGTERM");
+    await redisService.dispose();
+});

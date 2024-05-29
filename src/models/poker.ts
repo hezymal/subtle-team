@@ -1,3 +1,5 @@
+import { User } from "telegraf/types";
+
 export enum StoryPoint {
     ST05 = "ST05",
     ST1 = "ST1",
@@ -6,8 +8,26 @@ export enum StoryPoint {
     ST5 = "ST5",
     ST8 = "ST8",
     ST13 = "ST13",
+    ST20 = "ST20",
     ST40 = "ST40",
     unknown = "unknown",
+}
+
+export enum PokerState {
+    open = "open",
+    closed = "closed",
+}
+
+export interface PokerUserVote {
+    user: User;
+    storyPoint: StoryPoint;
+}
+
+export interface Poker {
+    pokerName: string;
+    state: PokerState;
+    usersVotes: PokerUserVote[];
+    created: string;
 }
 
 export const getStoryPointLabel = (storyPoint: StoryPoint): string => {
@@ -32,6 +52,9 @@ export const getStoryPointLabel = (storyPoint: StoryPoint): string => {
 
         case StoryPoint.ST13:
             return "13";
+
+        case StoryPoint.ST20:
+            return "20";
 
         case StoryPoint.ST40:
             return "40";
@@ -63,6 +86,9 @@ export const getStoryPointValue = (storyPoint: StoryPoint): number => {
 
         case StoryPoint.ST13:
             return 13;
+
+        case StoryPoint.ST20:
+            return 20;
 
         case StoryPoint.ST40:
             return 40;
