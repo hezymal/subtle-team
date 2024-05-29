@@ -1,5 +1,15 @@
 # Бот самой тонкой команды
 
-## Настройка systemd
+## Настройка
 
-https://gist.github.com/hotohoto/51c4a6504000dbf388aa9150e07cf892
+```sh
+echo 'BOT_TOKEN=<token>' > .env
+```
+
+> Нужно заменить `<token>` на токен бота полученного из телеграмма.
+
+## Запуск
+
+```sh
+docker compose up -d
+```
