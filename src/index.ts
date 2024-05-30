@@ -25,7 +25,7 @@ bot.command("ping", handlePingCommand);
 bot.command("poker", handlePokerCommand);
 
 bot.on("callback_query", async (context) => {
-    await context.answerCbQuery("What is it?");
+    await context.answerCbQuery();
 
     try {
         const query = context.callbackQuery as CallbackQuery.DataQuery;
@@ -55,7 +55,7 @@ bot.on("callback_query", async (context) => {
 });
 
 bot.launch(() => {
-    console.log("bot launched:");
+    console.log("bot launched!");
 });
 
 process.once("SIGINT", async () => {
