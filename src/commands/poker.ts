@@ -135,7 +135,7 @@ export const handlePokerCommand = async (
     context: CommandHandlerContext
 ): Promise<void> => {
     const chatId = context.message.chat.id;
-    const pokerName = context.args[0] || "";
+    const pokerName = context.args.length > 0 ? context.args.join(" ") : "";
     const messageText = getNewPokerMessage(pokerName);
     const message = await context.telegram.sendMessage(chatId, messageText, {
         parse_mode: "HTML",
