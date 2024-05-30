@@ -40,7 +40,7 @@ const getVotedPokerMessage = (poker: Poker): string => {
     }
 
     const votes = poker.usersVotes.map(
-        (userVote) => `🃏 - ${getUserName(userVote.user)}`
+        (userVote) => `💘 - ${getUserName(userVote.user)}`
     );
     const total = `Всего голосов: ${poker.usersVotes.length}`;
 
