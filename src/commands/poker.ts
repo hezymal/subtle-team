@@ -47,7 +47,24 @@ const getVotedPokerMessage = (poker: Poker): string => {
     return `${title}\n\n${votes.join("\n")}\n\n${total}`;
 };
 
-const getPokerResultMessage = (poker: Poker): string => {
+const getNearestStoryPoint = (average: number): StoryPoint => {
+    const points = Object.values(StoryPoint);
+    const values = points.map(getStoryPointValue);
+    let nearestIndex = 0;
+
+    for (let index = 1; index < values.length; index++) {
+        if (
+            Math.abs(values[nearestIndex] - average) >
+            Math.abs(values[index] - average)
+        ) {
+            nearestIndex = index;
+        }
+    }
+
+    return points[nearestIndex];
+};
+
+const getClosedPokerMessage = (poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
 
     if (poker.usersVotes.length === 0) {
@@ -76,12 +93,15 @@ const getPokerResultMessage = (poker: Poker): string => {
         pointsSum += pointValue;
     }
 
-    const poinstAverage = pointsCount > 0 ? pointsSum / pointsCount : 0;
+    const pointsAverage = pointsCount > 0 ? pointsSum / pointsCount : 0;
 
     const total = `Всего голосов: ${poker.usersVotes.length}`;
-    const medium = `В среднем: <strong>${poinstAverage.toFixed(2)}</strong>`;
+    const medium = `В среднем: <strong>${pointsAverage.toFixed(2)}</strong>`;
+    const nearest = `Ближайшее: <strong>${getStoryPointValue(
+        getNearestStoryPoint(pointsAverage)
+    )}</strong>`;
 
-    return `${title}\n\n${votes.join("\n")}\n\n${total}\n${medium}`;
+    return `${title}\n\n${votes.join("\n")}\n\n${total}\n${medium}\n${nearest}`;
 };
 
 const getOpenPokerKeyboardMarkup = (): InlineKeyboardMarkup => {
@@ -196,7 +216,7 @@ export const handleCloseCallbackQuery = async (
     }
 
     const poker = await pokerService.get(chatId, messageId);
-    const messageText = getPokerResultMessage(poker);
+    const messageText = getClosedPokerMessage(poker);
     await context.editMessageText(messageText, {
         parse_mode: "HTML",
         reply_markup: getClosedPokerKeyboardMarkup(),
