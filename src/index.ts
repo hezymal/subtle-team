@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-import { Telegraf } from "telegraf";
+import { Telegraf, TelegramError } from "telegraf";
 import { CallbackQuery } from "telegraf/types";
 import { handlePingCommand } from "./commands/ping";
 import {
@@ -25,25 +25,33 @@ bot.command("ping", handlePingCommand);
 bot.command("poker", handlePokerCommand);
 
 bot.on("callback_query", async (context) => {
-    await context.telegram.answerCbQuery(context.callbackQuery.id);
+    await context.answerCbQuery("What is it?");
 
-    const query = context.callbackQuery as CallbackQuery.DataQuery;
-    const callbackData = unpackCallbackData(query.data);
-    switch (callbackData.type) {
-        case CallbackDataType.vote:
-            await handleVoteCallbackQuery(context, callbackData);
-            break;
+    try {
+        const query = context.callbackQuery as CallbackQuery.DataQuery;
+        const callbackData = unpackCallbackData(query.data);
+        switch (callbackData.type) {
+            case CallbackDataType.vote:
+                await handleVoteCallbackQuery(context, callbackData);
+                break;
 
-        case CallbackDataType.repeat:
-            await handleRestartCallbackQuery(context);
-            break;
+            case CallbackDataType.repeat:
+                await handleRestartCallbackQuery(context);
+                break;
 
-        case CallbackDataType.close:
-            await handleCloseCallbackQuery(context);
-            break;
+            case CallbackDataType.close:
+                await handleCloseCallbackQuery(context);
+                break;
+        }
+    } catch (error) {
+        if (error instanceof TelegramError) {
+            console.error(error);
+        } else {
+            throw error;
+        }
+    } finally {
+        await context.telegram.answerCbQuery(context.callbackQuery.id);
     }
-
-    await context.answerCbQuery();
 });
 
 bot.launch(() => {
