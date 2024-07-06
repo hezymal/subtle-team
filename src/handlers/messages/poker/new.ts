@@ -1,24 +1,24 @@
 import { InlineKeyboardMarkup } from "telegraf/types";
 import { QueryData, packQueryData } from "../../../models/queryData";
 import { MessageDescription } from "../../../models/message";
-import { StoryPoint, getStoryPointLabel } from "../../../models/poker";
-import { getPokerTitle } from "./title";
+import { StoryPoint, getStoryPointTitle } from "../../../models/poker";
+import { getPokerTitle } from "./common/poker";
 
 const getKeyboardMarkup = (): InlineKeyboardMarkup => {
     const storyPoints = Object.values(StoryPoint);
-    const amountInRow = Math.ceil(storyPoints.length / 2);
+    const rowSize = Math.ceil(storyPoints.length / 2);
 
     return {
         inline_keyboard: [
-            storyPoints.slice(0, amountInRow).map((storyPoint) => ({
-                text: getStoryPointLabel(storyPoint),
+            storyPoints.slice(0, rowSize).map((storyPoint) => ({
+                text: getStoryPointTitle(storyPoint),
                 callback_data: packQueryData({
                     type: QueryData.Type.vote,
                     payload: storyPoint,
                 }),
             })),
-            storyPoints.slice(amountInRow).map((storyPoint) => ({
-                text: getStoryPointLabel(storyPoint),
+            storyPoints.slice(rowSize).map((storyPoint) => ({
+                text: getStoryPointTitle(storyPoint),
                 callback_data: packQueryData({
                     type: QueryData.Type.vote,
                     payload: storyPoint,

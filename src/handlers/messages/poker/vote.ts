@@ -2,9 +2,9 @@ import { InlineKeyboardMarkup, User } from "telegraf/types";
 
 import { QueryData, packQueryData } from "../../../models/queryData";
 import { MessageDescription } from "../../../models/message";
-import { Poker, StoryPoint, getStoryPointLabel } from "../../../models/poker";
-import { getPokerTitle } from "./title";
-import { getUserName } from "./user";
+import { Poker, StoryPoint, getStoryPointTitle } from "../../../models/poker";
+import { getPokerTitle } from "./common/poker";
+import { getUserName } from "./common/user";
 
 const buildText = (currentUser: User, poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
@@ -14,11 +14,9 @@ const buildText = (currentUser: User, poker: Poker): string => {
     }
 
     const votes = poker.usersVotes.map((userVote) => {
-        if (userVote.user.id === currentUser.id) {
-            return `💙 - <strong>${getUserName(userVote.user)}</strong>`;
-        }
-
-        return `💘 - ${getUserName(userVote.user)}`;
+        return userVote.user.id === currentUser.id
+            ? `💙 - <strong>${getUserName(userVote.user)}</strong>`
+            : `💘 - ${getUserName(userVote.user)}`;
     });
     const total = `Всего голосов: ${poker.usersVotes.length}`;
 
@@ -32,14 +30,14 @@ const buildKeyboardMarkup = (): InlineKeyboardMarkup => {
     return {
         inline_keyboard: [
             storyPoints.slice(0, amountInRow).map((storyPoint) => ({
-                text: getStoryPointLabel(storyPoint),
+                text: getStoryPointTitle(storyPoint),
                 callback_data: packQueryData({
                     type: QueryData.Type.vote,
                     payload: storyPoint,
                 }),
             })),
             storyPoints.slice(amountInRow).map((storyPoint) => ({
-                text: getStoryPointLabel(storyPoint),
+                text: getStoryPointTitle(storyPoint),
                 callback_data: packQueryData({
                     type: QueryData.Type.vote,
                     payload: storyPoint,

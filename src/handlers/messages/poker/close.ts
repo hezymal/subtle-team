@@ -2,23 +2,26 @@ import { InlineKeyboardMarkup, User } from "telegraf/types";
 
 import { MessageDescription } from "../../../models/message";
 import {
-    getStoryPointLabel,
+    getStoryPointTitle,
     getStoryPointValue,
     Poker,
+    PokerUserVote,
     StoryPoint,
 } from "../../../models/poker";
-import { getPokerTitle } from "./title";
-import { getUserName } from "./user";
+import { getPokerTitle } from "./common/poker";
+import { getUserName } from "./common/user";
 import { QueryData, packQueryData } from "../../../models/queryData";
 
-const getNearestStoryPoint = (average: number): StoryPoint => {
-    const points = Object.values(StoryPoint);
+export const getNearestStoryPoint = (average: number): StoryPoint => {
+    const points = Object.values(StoryPoint).filter(
+        (p) => p !== StoryPoint.unknown
+    );
     const values = points.map(getStoryPointValue);
 
     let nearestIndex = 0;
     for (let index = 1; index < values.length; index++) {
         if (
-            Math.abs(values[nearestIndex] - average) >
+            Math.abs(values[nearestIndex] - average) >=
             Math.abs(values[index] - average)
         ) {
             nearestIndex = index;
@@ -28,49 +31,64 @@ const getNearestStoryPoint = (average: number): StoryPoint => {
     return points[nearestIndex];
 };
 
-const buildText = (currentUser: User, poker: Poker): string => {
-    const title = getPokerTitle(poker.pokerName);
-
-    if (poker.usersVotes.length === 0) {
-        return `${title}\n\nОтменен!`;
-    }
-
-    const votes: string[] = [];
-    let pointsSum = 0;
-    let pointsCount = 0;
-
-    const sortedUsersVotes = [...poker.usersVotes].sort((vote1, vote2) => {
+const sortUsersVotes = (usersVotes: PokerUserVote[]): PokerUserVote[] => {
+    return [...usersVotes].sort((vote1, vote2) => {
         const value1 = getStoryPointValue(vote1.storyPoint);
         const value2 = getStoryPointValue(vote2.storyPoint);
         return value1 - value2;
     });
+};
 
-    for (const userVote of sortedUsersVotes) {
-        const userName = getUserName(userVote.user);
-        const pointLabel = getStoryPointLabel(userVote.storyPoint);
-        const pointValue = getStoryPointValue(userVote.storyPoint);
-        if (pointValue > 0) {
-            pointsCount++;
-        }
+const buildCancelledText = (poker: Poker): string => {
+    return `
+${getPokerTitle(poker.pokerName)}
 
-        if (userVote.user.id === currentUser.id) {
-            votes.push(`${pointLabel} - <strong>${userName}</strong>`);
-        } else {
-            votes.push(`${pointLabel} - ${userName}`);
-        }
+Отменен!
+    `.trim();
+};
 
-        pointsSum += pointValue;
+export const buildText = (currentUser: User, poker: Poker): string => {
+    if (poker.usersVotes.length === 0) {
+        return buildCancelledText(poker);
     }
 
-    const pointsAverage = pointsCount > 0 ? pointsSum / pointsCount : 0;
+    const votes: string[] = [];
+    let totalValue = 0;
+    let significantValues = 0;
 
-    const total = `Всего голосов: ${poker.usersVotes.length}`;
-    const medium = `В среднем: <strong>${pointsAverage.toFixed(2)}</strong>`;
-    const nearest = `Ближайшее: <strong>${getStoryPointValue(
-        getNearestStoryPoint(pointsAverage)
-    )}</strong>`;
+    for (const userVote of sortUsersVotes(poker.usersVotes)) {
+        const user = userVote.user;
+        const userName = getUserName(user);
+        const point = userVote.storyPoint;
+        const pointTitle = getStoryPointTitle(point);
+        const pointValue = getStoryPointValue(point);
 
-    return `${title}\n\n${votes.join("\n")}\n\n${total}\n${medium}\n${nearest}`;
+        if (point !== StoryPoint.unknown) {
+            totalValue += pointValue;
+            significantValues++;
+        }
+
+        if (user.id === currentUser.id) {
+            votes.push(`${pointTitle} - <strong>${userName}</strong>`);
+        } else {
+            votes.push(`${pointTitle} - ${userName}`);
+        }
+    }
+
+    const title = getPokerTitle(poker.pokerName);
+    const totalVotes = poker.usersVotes.length;
+    const averageValue = significantValues && totalValue / significantValues;
+    const nearestValue = getStoryPointValue(getNearestStoryPoint(averageValue));
+
+    return `
+${title}
+
+${votes.join("\n")}
+
+Всего голосов: ${totalVotes}
+В среднем: <strong>${averageValue.toFixed(2)}</strong>
+Ближайшее: <strong>${nearestValue}</strong>
+    `.trim();
 };
 
 const buildKeyboardMarkup = (): InlineKeyboardMarkup => {

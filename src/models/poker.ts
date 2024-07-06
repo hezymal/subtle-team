@@ -30,7 +30,7 @@ export interface Poker {
     created: string;
 }
 
-export const getStoryPointLabel = (storyPoint: StoryPoint): string => {
+export const getStoryPointTitle = (storyPoint: StoryPoint): string => {
     switch (storyPoint) {
         case StoryPoint.ST05:
             return "0.5";
