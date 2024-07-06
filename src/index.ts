@@ -26,8 +26,7 @@ bot.command("ping", handlePingCommand);
 bot.command("poker", handlePokerCommand);
 
 bot.on("callback_query", async (context) => {
-    await context.answerCbQuery();
-
+    let isQueryHandled = false;
     try {
         const query = context.callbackQuery as CallbackQuery.DataQuery;
         const data = unpackQueryData(query.data);
@@ -44,14 +43,20 @@ bot.on("callback_query", async (context) => {
                 await handleCloseQuery(context);
                 break;
         }
+
+        isQueryHandled = true;
     } catch (error) {
         if (error instanceof TelegramError) {
+            isQueryHandled = true;
             console.error(error);
         } else {
             throw error;
         }
-    } finally {
+    }
+
+    if (isQueryHandled) {
         await context.telegram.answerCbQuery(context.callbackQuery.id);
+        await context.answerCbQuery("Голос учтен");
     }
 });
 
