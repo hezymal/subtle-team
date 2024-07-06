@@ -3,7 +3,7 @@ import "dotenv/config";
 import { Telegraf, TelegramError } from "telegraf";
 import { CallbackQuery } from "telegraf/types";
 
-import { handlePingCommand } from "./handlers/commands/ping";
+import { handleHelpCommand } from "./handlers/commands/help";
 import { handlePokerCommand } from "./handlers/commands/poker";
 import {
     handleVoteQuery,
@@ -22,7 +22,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 bot.use(logMiddleware);
 
-bot.command("ping", handlePingCommand);
+bot.command("help", handleHelpCommand);
 bot.command("poker", handlePokerCommand);
 
 bot.on("callback_query", async (context) => {
