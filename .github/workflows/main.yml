@@ -20,9 +20,13 @@ jobs:
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
                   script: |
                       cd ${{ secrets.WORK_DIR }}
+
                       git checkout ${{ secrets.MAIN_BRANCH }}
                       git pull
+
+                      LAST_COMMIT=$(git log --pretty=format:"%h [%cr] %s" -1 | sed 's/"/\\"/')
                       echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
                       echo "BRANCH_NAME=${{ secrets.MAIN_BRANCH }}" >> .env
-                      git log --pretty=format:"LAST_COMMIT=\"%h   %s (%cr)\"" -1 >> .env
+                      echo "LAST_COMMIT=\"$LAST_COMMIT\"" >> .env
+
                       docker compose up -d --build
