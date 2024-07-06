@@ -6,6 +6,8 @@ export const handlePokerCommand = async (
     context: CommandHandlerContext
 ): Promise<void> => {
     const chatId = context.message.chat.id;
+    const currentUser = context.from;
+
     const pokerName = context.args.length > 0 ? context.args.join(" ") : "";
     const messageDescription = buildNewMessageDescription(pokerName);
     const message = await context.telegram.sendMessage(
@@ -14,6 +16,6 @@ export const handlePokerCommand = async (
         messageDescription.extra
     );
 
-    const sentMessageId = message.message_id;
-    await pokerService.create(chatId, sentMessageId, pokerName);
+    const messageId = message.message_id;
+    await pokerService.create(chatId, currentUser, messageId, pokerName);
 };

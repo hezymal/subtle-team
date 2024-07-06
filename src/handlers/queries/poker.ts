@@ -33,7 +33,7 @@ export const handleVoteQuery = async (
     }
 
     const poker = await pokerService.get(chatId, messageId);
-    const messageDescription = buildVoteMessageDescription(currentUser, poker);
+    const messageDescription = buildVoteMessageDescription(poker);
     await context.editMessageText(
         messageDescription.text,
         messageDescription.extra
@@ -57,7 +57,11 @@ export const handleCloseQuery = async (
     }
 
     const poker = await pokerService.get(chatId, messageId);
-    const messageDescription = buildCloseMessageDescription(currentUser, poker);
+    if (poker.author.id !== currentUser.id) {
+        return;
+    }
+
+    const messageDescription = buildCloseMessageDescription(poker);
     await context.editMessageText(
         messageDescription.text,
         messageDescription.extra
@@ -74,6 +78,7 @@ export const handleRestartQuery = async (
 
     const chatId = context.chat.id;
     const messageId = context.msgId;
+    const currentUser = context.from;
 
     const isPokerExists = await pokerService.exists(chatId, messageId);
     if (!isPokerExists) {
@@ -88,5 +93,10 @@ export const handleRestartQuery = async (
         newMessageDescription.extra
     );
 
-    await pokerService.create(chatId, newMessage.message_id, poker.pokerName);
+    await pokerService.create(
+        chatId,
+        currentUser,
+        newMessage.message_id,
+        poker.pokerName
+    );
 };

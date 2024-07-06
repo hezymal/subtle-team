@@ -28,6 +28,7 @@ export interface Poker {
     state: PokerState;
     usersVotes: PokerUserVote[];
     created: string;
+    author: User;
 }
 
 export const getStoryPointTitle = (storyPoint: StoryPoint): string => {

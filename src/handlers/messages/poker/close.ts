@@ -47,7 +47,7 @@ ${getPokerTitle(poker.pokerName)}
     `.trim();
 };
 
-export const buildText = (currentUser: User, poker: Poker): string => {
+export const buildText = (poker: Poker): string => {
     if (poker.usersVotes.length === 0) {
         return buildCancelledText(poker);
     }
@@ -68,11 +68,7 @@ export const buildText = (currentUser: User, poker: Poker): string => {
             significantValues++;
         }
 
-        if (user.id === currentUser.id) {
-            votes.push(`${pointTitle} - <strong>${userName}</strong>`);
-        } else {
-            votes.push(`${pointTitle} - ${userName}`);
-        }
+        votes.push(`${pointTitle} - ${userName}`);
     }
 
     const title = getPokerTitle(poker.pokerName);
@@ -107,11 +103,10 @@ const buildKeyboardMarkup = (): InlineKeyboardMarkup => {
 };
 
 export const buildCloseMessageDescription = (
-    currentUser: User,
     poker: Poker
 ): MessageDescription => {
     return {
-        text: buildText(currentUser, poker),
+        text: buildText(poker),
         extra: {
             parse_mode: "HTML",
             reply_markup: buildKeyboardMarkup(),

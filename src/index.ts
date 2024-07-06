@@ -55,7 +55,6 @@ bot.on("callback_query", async (context) => {
     }
 
     if (isQueryHandled) {
-        await context.telegram.answerCbQuery(context.callbackQuery.id);
         await context.answerCbQuery();
     }
 });

@@ -28,7 +28,6 @@ describe("buildText()", () => {
         };
 
         const poker: Poker = {
-            created: "2024-07-06",
             pokerName: "STGFRONT-0001",
             state: PokerState.open,
             usersVotes: [
@@ -53,11 +52,13 @@ describe("buildText()", () => {
                     },
                 },
             ],
+            author: currentUser,
+            created: "2024-07-06",
         };
 
         const expectedText =
-            "<strong>Покер: STGFRONT-0001</strong>\n\n0.5 - Пользователь #1\n1 - <strong>Текущий пользователь</strong>\n2 - Пользователь #2\n\nВсего голосов: 3\nВ среднем: <strong>1.17</strong>\nБлижайшее: <strong>1</strong>";
+            "<strong>Покер: STGFRONT-0001</strong>\n\n0.5 - Пользователь #1\n1 - Текущий пользователь\n2 - Пользователь #2\n\nВсего голосов: 3\nВ среднем: <strong>1.17</strong>\nБлижайшее: <strong>1</strong>";
 
-        expect(buildText(currentUser, poker)).toBe(expectedText);
+        expect(buildText(poker)).toBe(expectedText);
     });
 });

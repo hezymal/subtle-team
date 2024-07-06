@@ -22,6 +22,7 @@ class PokerService {
 
     public create(
         chatId: number,
+        author: User,
         messageId: number,
         pokerName: string
     ): Promise<void> {
@@ -30,6 +31,7 @@ class PokerService {
             usersVotes: [],
             state: PokerState.open,
             created: new Date().toISOString(),
+            author,
         };
 
         return this.setInStorage(chatId, messageId, poker);
