@@ -10,8 +10,7 @@ export const handlePokerCommand = async (
 
     const pokerName = context.args.length > 0 ? context.args.join(" ") : "";
     const messageDescription = buildNewMessageDescription(pokerName);
-    const message = await context.telegram.sendMessage(
-        chatId,
+    const message = await context.sendMessage(
         messageDescription.text,
         messageDescription.extra
     );

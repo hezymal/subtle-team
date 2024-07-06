@@ -9,8 +9,8 @@ export const handleHelpCommand = (context: CommandHandlerContext) => {
         branchName,
         lastCommit
     );
-    return context.telegram.sendMessage(
-        context.message.chat.id,
+
+    return context.sendMessage(
         messageDescription.text,
         messageDescription.extra
     );

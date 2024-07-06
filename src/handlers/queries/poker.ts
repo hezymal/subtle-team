@@ -87,8 +87,7 @@ export const handleRestartQuery = async (
 
     const poker = await pokerService.get(chatId, messageId);
     const newMessageDescription = buildNewMessageDescription(poker.pokerName);
-    const newMessage = await context.telegram.sendMessage(
-        chatId,
+    const newMessage = await context.sendMessage(
         newMessageDescription.text,
         newMessageDescription.extra
     );

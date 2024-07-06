@@ -43,7 +43,7 @@ const buildCancelledText = (poker: Poker): string => {
     return `
 ${getPokerTitle(poker.pokerName)}
 
-Отменен!
+Отменен
     `.trim();
 };
 
