@@ -9,19 +9,11 @@ jobs:
         name: run pull
         runs-on: ubuntu-latest
         steps:
-            # - name: install ssh keys
-            #   # check this thread to understand why its needed:
-            #   # https://stackoverflow.com/a/70447517
-            #   run: |
-            #     install -m 600 -D /dev/null ~/.ssh/id_rsa
-            #     echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-            #     ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
-            # - name: connect and pull
-            #   run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "cd ${{ secrets.WORK_DIR }} && git checkout ${{ secrets.MAIN_BRANCH }} && git pull && docker compose up -d --build && exit"
-            # - name: cleanup
-            #   run: rm -rf ~/.ssh
             - name: deployment
               uses: appleboy/ssh-action@v1.0.3
+              env:
+                  BRANCH_NAME: ${{ secrets.MAIN_BRANCH }}
+                  BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
               with:
                   host: ${{ secrets.SSH_HOST }}
                   username: ${{ secrets.SSH_USER }}
@@ -30,4 +22,7 @@ jobs:
                       cd ${{ secrets.WORK_DIR }}
                       git checkout ${{ secrets.MAIN_BRANCH }}
                       git pull
+                      echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
+                      echo "BRANCH_NAME=${{ secrets.MAIN_BRANCH }}" >> .env
+                      git log --pretty=format:"LAST_COMMIT=\"%h   %s (%cr)\"" -1 >> .env
                       docker compose up -d --build
