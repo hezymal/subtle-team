@@ -2,11 +2,11 @@ import { MessageDescription } from "../../models/message";
 
 export const buildText = (branchName: string, lastCommit: string) => {
     return `
-<strong>subtle-team</strong>
+<strong>Помощь</strong>
 
-версия: ${branchName} / ${lastCommit}
+<strong>версия:</strong> ${branchName} / ${lastCommit}
 
-доступные команды:
+<strong>доступные команды:</strong>
 /help - текущее сообщение
 /poker task-name - начать голосование
     `.trim();
