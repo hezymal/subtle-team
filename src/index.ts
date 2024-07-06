@@ -6,9 +6,9 @@ import { CallbackQuery } from "telegraf/types";
 import { handlePingCommand } from "./handlers/commands/ping";
 import { handlePokerCommand } from "./handlers/commands/poker";
 import {
-    handleVoteCallbackQuery,
-    handleRestartCallbackQuery,
-    handleCloseCallbackQuery,
+    handleVoteQuery,
+    handleRestartQuery,
+    handleCloseQuery,
 } from "./handlers/queries/poker";
 import { logMiddleware } from "./middlewares/logMiddleware";
 import { QueryData, unpackQueryData } from "./models/queryData";
@@ -30,18 +30,18 @@ bot.on("callback_query", async (context) => {
 
     try {
         const query = context.callbackQuery as CallbackQuery.DataQuery;
-        const callbackData = unpackQueryData(query.data);
-        switch (callbackData.type) {
+        const data = unpackQueryData(query.data);
+        switch (data.type) {
             case QueryData.Type.vote:
-                await handleVoteCallbackQuery(context, callbackData);
+                await handleVoteQuery(context, data);
                 break;
 
             case QueryData.Type.repeat:
-                await handleRestartCallbackQuery(context);
+                await handleRestartQuery(context);
                 break;
 
             case QueryData.Type.close:
-                await handleCloseCallbackQuery(context);
+                await handleCloseQuery(context);
                 break;
         }
     } catch (error) {

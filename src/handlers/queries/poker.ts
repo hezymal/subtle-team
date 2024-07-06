@@ -5,7 +5,7 @@ import { QueryData } from "../../models/queryData";
 import { pokerService } from "../../services/pokerService";
 import { CommandCallbackQueryContext } from "../../types";
 
-export const handleVoteCallbackQuery = async (
+export const handleVoteQuery = async (
     context: CommandCallbackQueryContext,
     data: QueryData.Vote
 ): Promise<void> => {
@@ -15,6 +15,7 @@ export const handleVoteCallbackQuery = async (
 
     const chatId = context.chat.id;
     const messageId = context.msgId;
+    const currentUser = context.from;
 
     const isPokerExists = await pokerService.exists(chatId, messageId);
     if (!isPokerExists) {
@@ -24,7 +25,7 @@ export const handleVoteCallbackQuery = async (
     const voteResult = await pokerService.vote(
         chatId,
         messageId,
-        context.from,
+        currentUser,
         data.payload
     );
     if (!voteResult) {
@@ -32,14 +33,14 @@ export const handleVoteCallbackQuery = async (
     }
 
     const poker = await pokerService.get(chatId, messageId);
-    const messageDescription = buildVoteMessageDescription(poker);
+    const messageDescription = buildVoteMessageDescription(currentUser, poker);
     await context.editMessageText(
         messageDescription.text,
         messageDescription.extra
     );
 };
 
-export const handleCloseCallbackQuery = async (
+export const handleCloseQuery = async (
     context: CommandCallbackQueryContext
 ): Promise<void> => {
     if (!context.chat || !context.msgId) {
@@ -48,6 +49,7 @@ export const handleCloseCallbackQuery = async (
 
     const chatId = context.chat.id;
     const messageId = context.msgId;
+    const currentUser = context.from;
 
     const isPokerExists = await pokerService.exists(chatId, messageId);
     if (!isPokerExists) {
@@ -55,7 +57,7 @@ export const handleCloseCallbackQuery = async (
     }
 
     const poker = await pokerService.get(chatId, messageId);
-    const messageDescription = buildCloseMessageDescription(poker);
+    const messageDescription = buildCloseMessageDescription(currentUser, poker);
     await context.editMessageText(
         messageDescription.text,
         messageDescription.extra
@@ -63,7 +65,7 @@ export const handleCloseCallbackQuery = async (
     await pokerService.close(chatId, messageId);
 };
 
-export const handleRestartCallbackQuery = async (
+export const handleRestartQuery = async (
     context: CommandCallbackQueryContext
 ): Promise<void> => {
     if (!context.chat || !context.msgId) {

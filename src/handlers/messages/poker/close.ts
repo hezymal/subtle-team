@@ -1,4 +1,4 @@
-import { InlineKeyboardMarkup } from "telegraf/types";
+import { InlineKeyboardMarkup, User } from "telegraf/types";
 
 import { MessageDescription } from "../../../models/message";
 import {
@@ -14,8 +14,8 @@ import { QueryData, packQueryData } from "../../../models/queryData";
 const getNearestStoryPoint = (average: number): StoryPoint => {
     const points = Object.values(StoryPoint);
     const values = points.map(getStoryPointValue);
-    let nearestIndex = 0;
 
+    let nearestIndex = 0;
     for (let index = 1; index < values.length; index++) {
         if (
             Math.abs(values[nearestIndex] - average) >
@@ -28,7 +28,7 @@ const getNearestStoryPoint = (average: number): StoryPoint => {
     return points[nearestIndex];
 };
 
-const buildText = (poker: Poker): string => {
+const buildText = (currentUser: User, poker: Poker): string => {
     const title = getPokerTitle(poker.pokerName);
 
     if (poker.usersVotes.length === 0) {
@@ -53,7 +53,12 @@ const buildText = (poker: Poker): string => {
             pointsCount++;
         }
 
-        votes.push(`${pointLabel} - ${userName}`);
+        if (userVote.user.id === currentUser.id) {
+            votes.push(`${pointLabel} - <strong>${userName}</strong>`);
+        } else {
+            votes.push(`${pointLabel} - ${userName}`);
+        }
+
         pointsSum += pointValue;
     }
 
@@ -84,10 +89,11 @@ const buildKeyboardMarkup = (): InlineKeyboardMarkup => {
 };
 
 export const buildCloseMessageDescription = (
+    currentUser: User,
     poker: Poker
 ): MessageDescription => {
     return {
-        text: buildText(poker),
+        text: buildText(currentUser, poker),
         extra: {
             parse_mode: "HTML",
             reply_markup: buildKeyboardMarkup(),
