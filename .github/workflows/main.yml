@@ -24,7 +24,7 @@ jobs:
                       git checkout ${{ secrets.MAIN_BRANCH }}
                       git pull
 
-                      LAST_COMMIT=$(git log --pretty=format:"%h [%cr] %s" -1 | sed 's/"/\\"/')
+                      LAST_COMMIT=$(git log --pretty=format:"%h [%cD] %s" -1 | sed 's/"/\\"/')
                       echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
                       echo "BRANCH_NAME=${{ secrets.MAIN_BRANCH }}" >> .env
                       echo "LAST_COMMIT=\"$LAST_COMMIT\"" >> .env
