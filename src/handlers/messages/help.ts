@@ -4,12 +4,11 @@ export const buildText = (branchName: string, lastCommit: string) => {
     return `
 <strong>subtle-team</strong>
 
-ветка: ${branchName}
-последний коммит: ${lastCommit}
+версия: ${branchName} / ${lastCommit}
 
-команды:
-/help - чтобы посмотреть текущее сообщение
-/poker <название-задачи> - начать покер голосование
+доступные команды:
+/help - текущее сообщение
+/poker task-name - начать голосование
     `.trim();
 };
 
@@ -19,5 +18,8 @@ export const buildHelpMessageDescription = (
 ): MessageDescription => {
     return {
         text: buildText(branchName, lastCommit),
+        extra: {
+            parse_mode: "HTML",
+        },
     };
 };

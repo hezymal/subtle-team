@@ -2,8 +2,8 @@ import { buildHelpMessageDescription } from "../messages/help";
 import { CommandHandlerContext } from "../../types";
 
 export const handleHelpCommand = (context: CommandHandlerContext) => {
-    const branchName = process.env.BRANCH_NAME || "<не указано>";
-    const lastCommit = process.env.LAST_COMMIT || "<не указано>";
+    const branchName = process.env.BRANCH_NAME || "не задано";
+    const lastCommit = process.env.LAST_COMMIT || "не задано";
 
     const messageDescription = buildHelpMessageDescription(
         branchName,
@@ -11,6 +11,7 @@ export const handleHelpCommand = (context: CommandHandlerContext) => {
     );
     return context.telegram.sendMessage(
         context.message.chat.id,
-        messageDescription.text
+        messageDescription.text,
+        messageDescription.extra
     );
 };
