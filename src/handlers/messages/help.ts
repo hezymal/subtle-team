@@ -2,13 +2,11 @@ import { MessageDescription } from "../../models/message";
 
 export const buildText = (branchName: string, lastCommit: string) => {
     return `
-<strong>Помощь</strong>
-
-<strong>версия:</strong> ${branchName} / ${lastCommit}
-
-<strong>доступные команды:</strong>
+<strong>Доступные команды:</strong>
 /help - текущее сообщение
 /poker task-name - начать голосование
+
+текущая версия: ${branchName} / ${lastCommit}
     `.trim();
 };
 
