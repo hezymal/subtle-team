@@ -1,6 +1,7 @@
+import { User } from "telegraf/types";
+
 import { redisService } from "./redisService";
 import { Poker, PokerState, StoryPoint } from "../models/poker";
-import { User } from "telegraf/types";
 
 const buildStorageKey = (chatId: number, messageId: number): string => {
     return `poker:${chatId}:${messageId}`;

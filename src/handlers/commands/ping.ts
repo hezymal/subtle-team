@@ -1,6 +1,6 @@
 import { execFileSync } from "child_process";
 
-import { CommandHandlerContext } from "../types";
+import { CommandHandlerContext } from "../../types";
 
 const execGit = (...commands: string[]): string => {
     const tag = execFileSync("git", commands);

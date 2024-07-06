@@ -2,15 +2,16 @@ import "dotenv/config";
 
 import { Telegraf, TelegramError } from "telegraf";
 import { CallbackQuery } from "telegraf/types";
-import { handlePingCommand } from "./commands/ping";
+
+import { handlePingCommand } from "./handlers/commands/ping";
+import { handlePokerCommand } from "./handlers/commands/poker";
 import {
-    handlePokerCommand,
     handleVoteCallbackQuery,
     handleRestartCallbackQuery,
     handleCloseCallbackQuery,
-} from "./commands/poker";
+} from "./handlers/queries/poker";
 import { logMiddleware } from "./middlewares/logMiddleware";
-import { CallbackDataType, unpackCallbackData } from "./models/callbackData";
+import { QueryData, unpackQueryData } from "./models/queryData";
 import { redisService } from "./services/redisService";
 
 if (!process.env.BOT_TOKEN) {
@@ -29,17 +30,17 @@ bot.on("callback_query", async (context) => {
 
     try {
         const query = context.callbackQuery as CallbackQuery.DataQuery;
-        const callbackData = unpackCallbackData(query.data);
+        const callbackData = unpackQueryData(query.data);
         switch (callbackData.type) {
-            case CallbackDataType.vote:
+            case QueryData.Type.vote:
                 await handleVoteCallbackQuery(context, callbackData);
                 break;
 
-            case CallbackDataType.repeat:
+            case QueryData.Type.repeat:
                 await handleRestartCallbackQuery(context);
                 break;
 
-            case CallbackDataType.close:
+            case QueryData.Type.close:
                 await handleCloseCallbackQuery(context);
                 break;
         }
