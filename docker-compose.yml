@@ -2,11 +2,13 @@ services:
     bot:
         build:
             context: .
-            dockerfile: ./Dockerfile.node
+            dockerfile: ./Dockerfile
+        volumes:
+            - ./config.prod.yml:/usr/src/app/config.yml
         restart: always
         depends_on:
-            - redis
+            - mongo
 
-    redis:
-        image: redis
+    mongo:
+        image: mongo
         restart: always
