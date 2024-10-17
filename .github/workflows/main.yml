@@ -11,9 +11,6 @@ jobs:
         steps:
             - name: deployment
               uses: appleboy/ssh-action@v1.0.3
-              env:
-                  BRANCH_NAME: ${{ secrets.MAIN_BRANCH }}
-                  BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
               with:
                   host: ${{ secrets.SSH_HOST }}
                   username: ${{ secrets.SSH_USER }}
@@ -24,9 +21,11 @@ jobs:
                       git checkout ${{ secrets.MAIN_BRANCH }}
                       git pull
 
-                      LAST_COMMIT=$(git log --pretty=format:"%h [%cD] %s" -1 | sed 's/"/\\"/')
-                      echo "BOT_TOKEN=${{ secrets.BOT_TOKEN }}" > .env
-                      echo "BRANCH_NAME=${{ secrets.MAIN_BRANCH }}" >> .env
-                      echo "LAST_COMMIT=\"$LAST_COMMIT\"" >> .env
+                      cp config.example.yml config.prod.yml
+                      sed -i -e 's/<mongo_connectionString>/mongodb:\/\/mongo:27017/g' config.prod.yml
+                      sed -i -e 's/<mongo_databaseName>/subtle-team/g' config.prod.yml
+                      sed -i -e 's/<telegram_botToken>/${{ secrets.BOT_TOKEN }}/g' config.prod.yml
+
+                      cat config.prod.yml
 
                       docker compose up -d --build
