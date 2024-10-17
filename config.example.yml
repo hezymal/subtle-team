@@ -1,0 +1,6 @@
+mongo:
+  connectionString: mongodb://127.0.0.1:27017
+  databaseName: subtle-team
+
+telegram:
+  botToken: 1112223334:7777777_AAABBBCCCDDDEEEFFFGGGHHHIII
