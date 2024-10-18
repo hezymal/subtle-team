@@ -18,9 +18,8 @@ jobs:
                   script: |
                       cd ${{ secrets.WORK_DIR }}
 
-                      git checkout main-2
-                      git restore .
-                      git pull
+                      git reset --hard
+                      git status
                       ls -la
 
                       cp ./config.example.yml ./config.prod.yml
