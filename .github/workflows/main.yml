@@ -16,10 +16,6 @@ jobs:
                   username: ${{ secrets.SSH_USER }}
                   key: ${{ secrets.SSH_PRIVATE_KEY }}
                   script: |
-                      cd ${{ secrets.WORK_DIR }}
-
-                      git pull
-
                       ls -la
 
                       cp ./config.example.yml ./config.prod.yml
