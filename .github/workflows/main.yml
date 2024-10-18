@@ -20,6 +20,8 @@ jobs:
 
                       git pull
 
+                      ls -la
+
                       cp ./config.example.yml ./config.prod.yml
                       sed -i -e 's/<mongo_connectionString>/mongodb:\/\/mongo:27017/g' ./config.prod.yml
                       sed -i -e 's/<mongo_databaseName>/subtle-team/g' ./config.prod.yml
