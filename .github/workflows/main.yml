@@ -20,13 +20,11 @@ jobs:
 
                       ls -la
 
-                      rm -rf ./*
+                      cp ./config.example.yml ./config.prod.yml
+                      sed -i -e 's/<mongo_connectionString>/mongodb:\/\/mongo:27017/g' ./config.prod.yml
+                      sed -i -e 's/<mongo_databaseName>/subtle-team/g' ./config.prod.yml
+                      sed -i -e 's/<telegram_botToken>/${{ secrets.BOT_TOKEN }}/g' ./config.prod.yml
 
-                      #   cp ./config.example.yml ./config.prod.yml
-                      #   sed -i -e 's/<mongo_connectionString>/mongodb:\/\/mongo:27017/g' ./config.prod.yml
-                      #   sed -i -e 's/<mongo_databaseName>/subtle-team/g' ./config.prod.yml
-                      #   sed -i -e 's/<telegram_botToken>/${{ secrets.BOT_TOKEN }}/g' ./config.prod.yml
+                      cat config.prod.yml
 
-                      #   cat config.prod.yml
-
-                      #   docker compose up -d --build
+                      docker compose up -d --build
