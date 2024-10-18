@@ -19,6 +19,7 @@ jobs:
                       cd ${{ secrets.WORK_DIR }}
 
                       git checkout main-2
+                      git restore .
                       git pull
                       ls -la
 
