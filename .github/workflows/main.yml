@@ -18,8 +18,6 @@ jobs:
                   script: |
                       cd ${{ secrets.WORK_DIR }}
 
-                      git checkout ${{ secrets.MAIN_BRANCH }}
-                      git reset 7500f7c86bcf5a510e64fcdeef2209f95ba8f296 --hard
                       git pull
 
                       cp config.example.yml config.prod.yml
