@@ -9,4 +9,4 @@ COPY ./ ./
 
 RUN go build -v -o /usr/local/bin/subtle-team ./cmd/...
 
-CMD ["subtle-team --config=/usr/src/app/config.yml"]
+CMD ["/usr/local/bin/subtle-team --config=/usr/src/app/config.yml"]
