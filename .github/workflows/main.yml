@@ -19,6 +19,7 @@ jobs:
                       cd ${{ secrets.WORK_DIR }}
 
                       git reset --hard
+                      git clean -f
                       git status
                       ls -la
 
