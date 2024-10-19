@@ -18,10 +18,7 @@ jobs:
                   script: |
                       cd ${{ secrets.WORK_DIR }}
 
-                      git reset --hard
-                      git clean -f
-                      git status
-                      ls -la
+                      git pull
 
                       cp ./config.example.yml ./config.prod.yml
                       sed -i -e 's/<mongo_connectionString>/mongodb:\/\/mongo:27017/g' ./config.prod.yml
