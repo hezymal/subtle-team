@@ -25,6 +25,4 @@ jobs:
                       sed -i -e 's/<mongo_databaseName>/subtle-team/g' ./config.prod.yml
                       sed -i -e 's/<telegram_botToken>/${{ secrets.BOT_TOKEN }}/g' ./config.prod.yml
 
-                      cat config.prod.yml
-
                       docker compose up -d --build
