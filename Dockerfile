@@ -7,6 +7,6 @@ RUN go mod download && go mod verify
 
 COPY ./ ./
 
-RUN go build -v -o /usr/local/bin/subtle-team ./cmd/...
+RUN go build -v -o ./subtle-team ./cmd/subtle-team/...
 
-CMD ["/usr/local/bin/subtle-team --config=/usr/src/app/config.yml"]
+CMD ["./subtle-team", "--config=./config.yml"]
