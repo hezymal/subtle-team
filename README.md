@@ -9,8 +9,13 @@
 5. Скопировать файл `config.example.yml` как `config.prod.yml`, на той же папке
 6. Прописать в файле `config.prod.yml` конфиги для mongodb, например, если использовать mongodb который указан в `docker-compose.yml` без дополнительных настроек, то:
 ```yml
-connectionString: mongodb://mongo:27017
-databaseName: subtle-team
+mongo:
+  connectionString: mongodb://mongo:27017
+  databaseName: subtle-team
 ```
-7. Прописать ранее выданный API Token в конфиг `botToken`
-8. Запустить `docker compose up -d`
+7. Прописать ранее выданный API Token в конфиг `botToken`:
+```yml
+telegram:
+  botToken: 7775805586:AAF555AAAzzzHbKuyxe6-vBARg-hhhZ9pAI
+```
+9. Запустить `docker compose up -d`
